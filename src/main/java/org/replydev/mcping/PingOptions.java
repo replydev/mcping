@@ -1,44 +1,19 @@
-package me.replydev.mcping;
+package org.replydev.mcping;
 
+import lombok.Builder;
+import lombok.Value;
+
+import java.net.InetSocketAddress;
+
+@Value
+@Builder
 public class PingOptions {
+    String hostname;
+    int port;
+    int timeout;
+    int protocolVersion = -1;
 
-    private String hostname;
-    private int port;
-    private int timeout;
-    private int protocolVersion = -1;
-
-    String getHostname() {
-        return this.hostname;
-    }
-
-    public PingOptions setHostname(String hostname) {
-        this.hostname = hostname;
-        return this;
-    }
-
-    int getPort() {
-        return this.port;
-    }
-
-    public PingOptions setPort(int port) {
-        this.port = port;
-        return this;
-    }
-
-    public int getTimeout() {
-        return this.timeout;
-    }
-
-    public PingOptions setTimeout(int timeout) {
-        this.timeout = timeout;
-        return this;
-    }
-
-    public int getProtocolVersion() {
-        return protocolVersion;
-    }
-
-    public void setProtocolVersion(int protocol) {
-        this.protocolVersion = protocol;
+    public InetSocketAddress getSocketAddress() {
+        return new InetSocketAddress(hostname, port);
     }
 }

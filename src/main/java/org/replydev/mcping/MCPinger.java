@@ -1,27 +1,24 @@
-package me.replydev.mcping;
+package org.replydev.mcping;
+
+import lombok.Builder;
+import lombok.Value;
+import org.replydev.mcping.model.ServerResponse;
+import org.replydev.mcping.utils.Singleton;
 
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 
-class Pinger {
-    private InetSocketAddress host;
-    private int timeout;
-    //  If the client is pinging to determine what version to use, by convention -1 should be set.
-    private int protocolVersion = -1;
+/**
+ * Minecraft Service List Protocol Pinger
+ * following 1.7+ protocol.
+ *
+ */
+@Value
+@Builder
+public class MCPinger {
 
-    void setAddress(InetSocketAddress host) {
-        this.host = host;
-    }
-
-    void setTimeout(int timeout) {
-        this.timeout = timeout;
-    }
-
-    public void setProtocolVersion(int protocolVersion) {
-        this.protocolVersion = protocolVersion;
-    }
+    PingOptions pingOptions;
 
     private int readVarInt(DataInputStream in) throws IOException {
         int i = 0;
@@ -39,7 +36,7 @@ class Pinger {
     }
 
     private void writeVarInt(DataOutputStream out, int paramInt) throws IOException {
-        for (; ; ) {
+        while(true) {
             if ((paramInt & 0xFFFFFF80) == 0) {
                 out.writeByte(paramInt);
                 return;
@@ -49,10 +46,11 @@ class Pinger {
         }
     }
 
-    public String fetchData() throws IOException {
+    public ServerResponse fetchData() throws IOException {
+        InetSocketAddress socketAddress = pingOptions.getSocketAddress();
         Socket socket = new Socket();
-        socket.setSoTimeout(this.timeout);
-        socket.connect(this.host, this.timeout);
+        socket.setSoTimeout(pingOptions.getTimeout());
+        socket.connect(socketAddress, pingOptions.getTimeout());
 
         OutputStream outputStream = socket.getOutputStream();
         DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
@@ -61,10 +59,10 @@ class Pinger {
         DataOutputStream handshake = new DataOutputStream(b);
 
         handshake.writeByte(0);
-        writeVarInt(handshake, protocolVersion);
-        writeVarInt(handshake, this.host.getHostString().length());
-        handshake.writeBytes(this.host.getHostString());
-        handshake.writeShort(this.host.getPort());
+        writeVarInt(handshake, pingOptions.getProtocolVersion());
+        writeVarInt(handshake, socketAddress.getHostString().length());
+        handshake.writeBytes(socketAddress.getHostString());
+        handshake.writeShort(socketAddress.getPort());
         writeVarInt(handshake, 1);
 
         writeVarInt(dataOutputStream, b.size());
@@ -79,16 +77,18 @@ class Pinger {
 
         if (size < 0 || id < 0 || length <= 0) {
             closeAll(b, dataInputStream, handshake, dataOutputStream, outputStream, inputStream, socket);
-            return null;
+            throw new IOException("Size or id or length is malformed");
         }
 
-        byte[] in = new byte[length];
-        dataInputStream.readFully(in);
+        byte[] fetchedData = new byte[length];
+        dataInputStream.readFully(fetchedData);
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fetchedData);
+        ServerResponse response = Singleton.dslJson.deserialize(ServerResponse.class,byteArrayInputStream);
         closeAll(b, dataInputStream, handshake, dataOutputStream, outputStream, inputStream, socket);
-        return new String(in, StandardCharsets.UTF_8); //JSON
+        return response;
     }
 
-    public void closeAll(Closeable... closeables) throws IOException {
+    private void closeAll(Closeable... closeables) throws IOException {
         for (Closeable closeable : closeables) {
             closeable.close();
         }
