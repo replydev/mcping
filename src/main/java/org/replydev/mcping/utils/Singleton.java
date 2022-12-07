@@ -1,7 +1,9 @@
 package org.replydev.mcping.utils;
 
 import com.dslplatform.json.DslJson;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class Singleton {
-    public static final DslJson<Object> dslJson = new DslJson<>();
+    public final DslJson<Object> dslJson = new DslJson<>();
 }
