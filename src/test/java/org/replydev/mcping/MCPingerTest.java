@@ -12,7 +12,7 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 class MCPingerTest {
 
     private static String minecraftServerHost;
