@@ -1,4 +1,4 @@
-name: Publish mcping to the Maven Central Repository
+name: Publish mcping to Github Packages
 on:
   release:
     types: [created]
