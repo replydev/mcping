@@ -9,7 +9,7 @@ import lombok.Value;
  */
 @Value
 @CompiledJson
-class Player {
+public class Player {
     String id;
     String name;
 }

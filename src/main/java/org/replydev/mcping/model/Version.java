@@ -8,7 +8,7 @@ import lombok.Value;
  */
 @Value
 @CompiledJson
-class Version {
+public class Version {
     String name;
     int protocol;
 }
