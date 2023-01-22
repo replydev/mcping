@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 @CompiledJson
 @Value
-class Description {
+public class Description {
     String text;
     List<ChatObject> extra;
     private static final Pattern descriptionPattern = Pattern.compile("§[0-9a-r]");

@@ -10,7 +10,7 @@ import java.util.List;
  */
 @Value
 @CompiledJson
-class Players {
+public class Players {
     int max;
     int online;
     List<Player> sample;
